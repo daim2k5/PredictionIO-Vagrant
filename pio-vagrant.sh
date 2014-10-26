@@ -34,15 +34,10 @@ if [ ! -f $SETUP_DIR/install ]; then
 	# Misc. Tools
 	apt-get install unzip -y
 	apt-get install curl -y
-
-	sudo apt-get install python-software-properties -y
-	sudo add-apt-repository ppa:ondrej/php5 -y
-	sudo apt-get update
-
-	sudo apt-get install php5 php5-curl -y
+	apt-get install git -y
 
 	# Java
-	apt-get install openjdk-7-jre -y
+	apt-get install openjdk-7-jdk -y
 
 	touch $SETUP_DIR/install
 fi
@@ -51,12 +46,14 @@ if [ ! -f $SETUP_DIR/download ]; then
 
 	# PredictionIO
 	cd $TEMP_DIR
-	if [ ! -f PredictionIO-0.8.0.tar.gz ]; then
-		wget http://download.prediction.io/PredictionIO-0.8.0.tar.gz
+	if [ ! -f PredictionIO-0.8.1-SNAPSHOT.tar.gz ]; then
+		git clone https://github.com/PredictionIO/PredictionIO
+		cd PredictionIO
+        ./make-distribution.sh
 	fi
 	tar zxvf PredictionIO-0.8.0.tar.gz
 	rm -rf $PIO_DIR
-	mv PredictionIO-0.8.0 $PIO_DIR
+	mv PredictionIO-0.8.1-SNAPSHOT $PIO_DIR
 	mkdir $VENDORS_DIR
 	chown -R $USER:$USER $PIO_DIR
 
@@ -97,7 +94,7 @@ if [ ! -f $SETUP_DIR/download ]; then
   </property>
 </configuration>
 EOT
-	echo 'export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-amd64' >> $HBASE_DIR/conf/hbase-env.sh
+	echo 'export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64' >> $HBASE_DIR/conf/hbase-env.sh
 
 	chown -R $USER:$USER $VENDORS_DIR
 
@@ -105,7 +102,9 @@ EOT
 
 fi
 
+echo "Running Elasticsearch..."
 sudo $ELASTIC_DIR/bin/elasticsearch &
+echo "Running HBase..."
 sudo $HBASE_DIR/bin/start-hbase.sh
 
 echo "IMPORTANT: You'll have to start the eventserver manually:"
@@ -113,3 +112,4 @@ echo "1. Run './pio eventserver --ip 0.0.0.0'"
 echo "2. Check the eventserver status with 'curl -i -X GET http://localhost:7070'"
 echo "3. Use ./pio {train/deploy/...} commands"
 echo "4. Profit!"
+echo $'\360\237\221\215'
